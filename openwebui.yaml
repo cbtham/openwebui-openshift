@@ -1,0 +1,104 @@
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: webui-data  
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: gp3-csi
+  volumeMode: Filesystem
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: openwebui-config  
+data:
+#  ENABLE_OLLAMA_API: 'False'
+#  OPENAI_API_BASE_URLS: 'https://model1.example.com/v1;https://model2.example.com/v1'
+#  OPENAI_API_KEYS: 'key1;key2'
+#  VECTOR_DB: chroma
+#  VECTOR_DB_URL: 'chromadb://local'
+#  WEBUI_SECRET_KEY: your-secret-key
+  WEBUI_AUTH: "false"
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: open-webui  
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: open-webui
+  template:
+    metadata:      
+      labels:
+        app: open-webui
+    spec:
+      volumes:        
+        - name: webui-data
+          persistentVolumeClaim:
+            claimName: webui-data
+      containers:
+        - resources: {}
+          terminationMessagePath: /dev/termination-log
+          name: open-webui
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          imagePullPolicy: IfNotPresent
+          volumeMounts:            
+            - name: webui-data
+              mountPath: /app/backend/data
+          terminationMessagePolicy: File
+          envFrom:
+            - configMapRef:
+                name: openwebui-config
+          image: 'ghcr.io/open-webui/open-webui:main'
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: open-webui  
+spec:
+  ipFamilies:
+    - IPv4
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  internalTrafficPolicy: Cluster  
+  type: ClusterIP
+  ipFamilyPolicy: SingleStack
+  sessionAffinity: None
+  selector:
+    app: open-webui
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: open-webui  
+spec:
+  to:
+    kind: Service
+    name: open-webui
+    weight: 100
+  tls:
+    termination: edge
+  wildcardPolicy: None
