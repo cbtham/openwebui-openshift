@@ -17,7 +17,7 @@ This is use for demo purposes. If you want to reference this as a deployment for
     ```
 1. Deploy by running
     ```shell
-    oc create -f openwebui.yaml
+    oc create -f openwebui-openshift/openwebui.yaml
     ```
 
 ## Connecting to a private endpoint
