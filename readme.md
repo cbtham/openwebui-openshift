@@ -1,6 +1,10 @@
 # Deploy OpenWebUI on OpenShift
 This is use for demo purposes. If you want to reference this as a deployment for prod, please go through the yaml to enable authentication and configure necessary parameters.
 
+
+![OpenWebUI](img/openwebui.png)
+
+
 ### This will create
 1. A persistent volume
 1. A persistent volume claim
