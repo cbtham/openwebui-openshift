@@ -22,7 +22,7 @@ data:
 #  OPENAI_API_KEYS: 'key1;key2'
 #  VECTOR_DB: chroma
 #  VECTOR_DB_URL: 'chromadb://local'
-#  WEBUI_SECRET_KEY: your-secret-key
+  WEBUI_SECRET_KEY: your-secret-key # Change to your own secret for secure deployment
   WEBUI_AUTH: "false"
 ---
 kind: Deployment
